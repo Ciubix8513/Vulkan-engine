@@ -16,6 +16,9 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{ab384837-aca1-4f6f-9c1f-1394fb347f9c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Math">
+      <UniqueIdentifier>{e7707ddf-08c9-495f-aac5-1320d80081a6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -27,6 +30,24 @@
     <ClCompile Include="Vulkan.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Math\EngineMath.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Matrices\Matrix4x4.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Vectors\Quarernion.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Vectors\Vector2.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Vectors\Vector3.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Vectors\Vector4.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="System.h">
@@ -34,6 +55,24 @@
     </ClInclude>
     <ClInclude Include="Vulkan.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\EngineMath.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Matrices\Matrix4x4.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vectors\Quarernion.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vectors\Vector2.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vectors\Vector3.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vectors\Vector4.h">
+      <Filter>Math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
