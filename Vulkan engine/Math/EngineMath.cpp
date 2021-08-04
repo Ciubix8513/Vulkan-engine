@@ -183,10 +183,6 @@ Matrix4x4 EngineMath::ScaleMatrix(float scale)
 }
 //----------------------------------------
 
-float EngineMath::PlaneDotCoord(Plane plane, Vector3 point)
-{
-    return plane.a * point.x + plane.b * point.y + plane.c * point.z + plane.d * 1;
-}
 Vector3 EngineMath::Normalized(Vector3 v)
 {
     if(v != Vector3(0,0,0))

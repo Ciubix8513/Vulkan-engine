@@ -1,7 +1,8 @@
 #pragma once
 #ifndef _ENGINE_MATH_H_
 #define _ENGINE_MATH_H_
-#include "Vectors/Plane.h"
+#include"Vectors/Quarernion.h"
+#include "Matrices/Matrix4x4.h"
 using namespace EngineMath;
 
 namespace EngineMath
@@ -27,7 +28,7 @@ namespace EngineMath
 	Matrix4x4 ScaleMatrix(Vector3 scale);
 	Matrix4x4 ScaleMatrix(float scale);
 #pragma region plain funcs
-	float PlaneDotCoord(Plane plane, Vector3 point);
+	
 	Vector3 Normalized(Vector3 v);
 	
 #pragma endregion

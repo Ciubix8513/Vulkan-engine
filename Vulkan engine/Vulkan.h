@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <fstream>
+#include "Math/EngineMath.h"
 
 //Load function
 static VkResult CreateDebugUtilsMessengerExt(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreatInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
@@ -50,6 +51,13 @@ struct Settings
 	uint32_t maxFramesInFlight;
 };
 
+struct Vertex
+{
+	EngineMath::Vector2 Position;
+	EngineMath::Vector3 Color;
+	static VkVertexInputBindingDescription getBindingDescription();
+	static std::vector<VkVertexInputAttributeDescription> getAttributeDescription();
+};
 
 class Vulkan
 {
@@ -78,7 +86,7 @@ private:
 	VkExtent2D ChooseExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 	void CreateImageViews();
 	void CreateRenderPass();
-	void CreatePipeline();
+	void CreateGraphicsPipeline();
 	VkShaderModule CreateShaderModule(const char* path);
 	void CreateFrameBuffers();
 	void CreateCommandPool();
@@ -86,7 +94,8 @@ private:
 	void CreateSyncObjects();
 	void CleanupSwapChain();
 	void RecreateSwapChain();
-	
+	void CreateVertexBuffer();
+	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 	std::vector<const char*> getRequiredExtensions();
 
@@ -125,12 +134,19 @@ private:
 	uint32_t m_currentFrame;
 	GLFWwindow* m_pWnd;
 	bool m_resized;
+	VkBuffer m_vertexBuffer;
+	VkDeviceMemory m_vertexBufferMemory;
 
 	//List of required device extensions
 	const std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 	//List of used validation layers
 	const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
-
+public:
+	const std::vector<Vertex> vertices = {
+	{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+	{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+	{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+	};
 #ifdef NDEBUG
 	const bool enableValidationLayers = false;
 #else

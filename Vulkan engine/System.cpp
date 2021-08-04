@@ -8,7 +8,7 @@ System::System()
 
 void System::Run()
 {
-
+	int a = 1;
 	InitWindow(800, 600);
 	m_vulkan = new Vulkan();
 	//lol
