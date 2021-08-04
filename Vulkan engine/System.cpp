@@ -19,10 +19,12 @@ void System::Run()
 
 	m_vulkan->Init(m_wnd,s);
 	std::cout << "Finished Vulkan initialisation\n";
+	lastTime = std::chrono::system_clock::now();
 	//start main loop
 	MainLoop();
 
 	CleanUp();
+	
 }
 
 void System::InitWindow(size_t width, size_t height)
@@ -45,8 +47,16 @@ void System::MainLoop()
 	//Run until recive window close flag
 	while (!glfwWindowShouldClose(m_wnd))	
 	{
+		//TODO Add a seperate thread for updating FPS 
 		//process window events
 		glfwPollEvents();
+		auto time = std::chrono::system_clock:
+		:now();
+		std::chrono::duration<double> SecSinceLastFrame = time - lastTime;
+		lastTime = time;
+		std::ostringstream  ss;
+		ss << (1.0f / (float)SecSinceLastFrame.count());
+		glfwSetWindowTitle(m_wnd, ((std::string)"Vulkan engone   FPS: " + ss.str()).c_str());
 		//Draw frame
 		m_vulkan->DrawFrame();
 	}

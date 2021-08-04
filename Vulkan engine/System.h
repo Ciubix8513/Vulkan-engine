@@ -1,5 +1,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include"Vulkan.h"
+#include <sstream>
+#include<chrono>
 #include <GLFW/glfw3.h>
 
 #ifndef _SYSTEM_H_
@@ -19,7 +21,7 @@ private:
 	void CleanUp();
 	static void frameBufferResizeCallBack(GLFWwindow* wnd, int w, int h);
 	
-
+	std::chrono::time_point<std::chrono::system_clock> lastTime;
 	GLFWwindow* m_wnd;
 	Vulkan* m_vulkan;
 };
