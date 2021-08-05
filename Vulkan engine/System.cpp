@@ -25,7 +25,7 @@ void System::Run()
 	MainLoop();
 
 	CleanUp();
-	
+	return;
 }
 
 void System::InitWindow(size_t width, size_t height)
@@ -45,6 +45,7 @@ void System::InitWindow(size_t width, size_t height)
 
 void System::UpdateFPS()
 {
+	//TODO Add calculation of average fps beetween title updates
 	while (!glfwWindowShouldClose(m_wnd))
 	{
 		float fps = 1 / m_deltaTime;
@@ -52,8 +53,9 @@ void System::UpdateFPS()
 		ss << fps;
 		glfwSetWindowTitle(m_wnd, ((std::string)"Vulkan engine   FPS: " + ss.str()).c_str());
 		std::this_thread::sleep_for(std::chrono::seconds(m_FPSupdateInterval));
-
+		
 	}
+	return;
 }
 
 void System::MainLoop()
@@ -86,6 +88,8 @@ void System::CleanUp()
 	glfwDestroyWindow(m_wnd);
 	//Terminate glfw
 	glfwTerminate();
+	std::cout << "Avg FPS = " << fps / (double)frames << "\n";
+	return;
 
 }
 
@@ -95,7 +99,9 @@ void System::UpdateTime()
 	std::chrono::duration<double> SecSinceLastFrame = time - m_lastTime;
 	m_deltaTime = SecSinceLastFrame.count();
 	m_lastTime = time;
-	
+	fps += (1 / (double)m_deltaTime);
+	frames++;
+	return;
 }
 
 
@@ -104,4 +110,5 @@ void System::frameBufferResizeCallBack(GLFWwindow* wnd, int w, int h)
 {
 	auto app = (System*)glfwGetWindowUserPointer(wnd);
 	app->m_vulkan->m_resized = true;
+	return;
 }

@@ -27,6 +27,9 @@ private:
 	std::chrono::time_point<std::chrono::system_clock> m_lastTime;
 	double m_deltaTime;
 	int m_FPSupdateInterval;
+	uint64_t frames;
+	uint64_t fps;
+
 	GLFWwindow* m_wnd;
 	Vulkan* m_vulkan;
 };

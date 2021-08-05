@@ -89,11 +89,13 @@ private:
 	void CreateGraphicsPipeline();
 	VkShaderModule CreateShaderModule(const char* path);
 	void CreateFrameBuffers();
-	void CreateCommandPool();
+	void CreateCommandPools();
 	void CreateCommandBuffers();
 	void CreateSyncObjects();
 	void CleanupSwapChain();
 	void RecreateSwapChain();
+	void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& Buffer, VkDeviceMemory& memory);
+	void CopyBuffer(VkBuffer src,VkBuffer dst,VkDeviceSize size);
 	void CreateVertexBuffer();
 	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
@@ -126,6 +128,7 @@ private:
 	VkPipeline m_graphicsPipeline;
 	std::vector<VkFramebuffer> m_swapChainFrameBuffers;
 	VkCommandPool m_commandPool;
+	VkCommandPool m_commandPool1;
 	std::vector<VkCommandBuffer> m_commandBuffers;
 	std::vector < VkSemaphore> m_imageAvailableSemaphores;
 	std::vector < VkSemaphore> m_renderFinishedSemaphores;
