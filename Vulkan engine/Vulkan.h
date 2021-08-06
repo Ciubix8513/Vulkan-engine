@@ -53,10 +53,17 @@ struct Settings
 
 struct Vertex
 {
-	EngineMath::Vector2 Position;
+	EngineMath::Vector3 Position;
 	EngineMath::Vector3 Color;
 	static VkVertexInputBindingDescription getBindingDescription();
 	static std::vector<VkVertexInputAttributeDescription> getAttributeDescription();
+};
+
+struct Matricies
+{
+	EngineMath::Matrix4x4 world;
+	EngineMath::Matrix4x4 view;
+	EngineMath::Matrix4x4 proj;
 };
 
 class Vulkan
@@ -97,7 +104,11 @@ private:
 	void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& Buffer, VkDeviceMemory& memory);
 	void CopyBuffer(VkBuffer src,VkBuffer dst,VkDeviceSize size);
 	void CreateVertexBuffer();
+	void CreateIndexBuffer();
 	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+	void CreateDescriptorSetLayout();
+	void CreateUniformBuffers();
+	void UpdateUniformBuffer(uint32_t imgIndex);
 
 	std::vector<const char*> getRequiredExtensions();
 
@@ -125,6 +136,7 @@ private:
 	std::vector<VkImageView> m_swapChainImageViews;
 	VkRenderPass m_renderPass;
 	VkPipelineLayout m_pipelineLayout;
+	VkDescriptorSetLayout m_descSetLayout;
 	VkPipeline m_graphicsPipeline;
 	std::vector<VkFramebuffer> m_swapChainFrameBuffers;
 	VkCommandPool m_commandPool;
@@ -138,7 +150,13 @@ private:
 	GLFWwindow* m_pWnd;
 	bool m_resized;
 	VkBuffer m_vertexBuffer;
+	VkBuffer m_indexBuffer;
+
 	VkDeviceMemory m_vertexBufferMemory;
+	VkDeviceMemory m_indexBufferMemory;
+
+	std::vector<VkBuffer> m_uBuffers;
+	std::vector<VkDeviceMemory> m_uBuffersMem;
 
 	//List of required device extensions
 	const std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
@@ -146,10 +164,12 @@ private:
 	const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
 public:
 	const std::vector<Vertex> vertices = {
-	{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-	{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-	{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+	{{-0.5f, -0.5f,0}, {1.0f, 0.0f, 0.0f}},
+	{{0.5f, -0.5f,0}, {0.0f, 1.0f, 0.0f}},
+	{{0.5f, 0.5f,0}, {0.0f, 0.0f, 1.0f}},
+	{{-0.5f, 0.5f,0}, {1.0f, 1.0f, 1.0f}}
 	};
+	const std::vector<uint16_t> indecies = { 0,1,2,2,3,0 };
 #ifdef NDEBUG
 	const bool enableValidationLayers = false;
 #else
