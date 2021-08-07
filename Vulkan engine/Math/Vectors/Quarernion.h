@@ -15,12 +15,18 @@ public:
 	Quaternion(Vector2 xy, Vector2 zw);
 	Quaternion(Vector3 rotation);
 	Quaternion(float x, float y, float z);
+	static Quaternion Slerp(Quaternion a, Quaternion b, float t);
 	Vector3 Euler();
-	
-	
-	bool operator==(Quaternion other);
-	Quaternion operator*(Quaternion other);
+	Quaternion Inverse();
+	static Quaternion Invert(Quaternion q);
+	Quaternion Conjugate();
+	float Magnitude();
 
+	bool operator==(Quaternion other);
+	Quaternion operator/ (float f);
+	Quaternion operator*(Quaternion other);
+	Quaternion operator*(float f);
+	Quaternion operator+(Quaternion b);
 public:
 	float x, y, z, w;
 

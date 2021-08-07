@@ -76,6 +76,44 @@ Quaternion::Quaternion(float x, float y, float z)
 	z = cr * cp * sy - sr * sp * cy;
 }
 
+//Stole some code from euclidianspace.com but shhhh.... don't tell anyone lol  :)
+Quaternion Quaternion::Slerp(Quaternion qa, Quaternion qb, float t)
+{
+	//Clamp t
+	if (t > 1) t = 1;
+	if (t < 0) t = 0;
+
+	// quaternion to return
+	Quaternion qm;
+	// Calculate angle between them.
+	double cosHalfTheta = qa.w * qb.w + qa.x * qb.x + qa.y * qb.y + qa.z * qb.z;
+	// if qa=qb or qa=-qb then theta = 0 and we can return qa
+	if (abs(cosHalfTheta) >= 1.0) {
+		qm.w = qa.w; qm.x = qa.x; qm.y = qa.y; qm.z = qa.z;
+		return qm;
+	}
+	// Calculate temporary values.
+	double halfTheta = acos(cosHalfTheta);
+	double sinHalfTheta = sqrt(1.0 - cosHalfTheta * cosHalfTheta);
+	// if theta = 180 degrees then result is not fully defined
+	// we could rotate around any axis normal to qa or qb
+	if (fabs(sinHalfTheta) < 0.001) { // fabs is floating point absolute
+		qm.w = (qa.w * 0.5 + qb.w * 0.5);
+		qm.x = (qa.x * 0.5 + qb.x * 0.5);
+		qm.y = (qa.y * 0.5 + qb.y * 0.5);
+		qm.z = (qa.z * 0.5 + qb.z * 0.5);
+		return qm;
+	}
+	double ratioA = sin((1 - t) * halfTheta) / sinHalfTheta;
+	double ratioB = sin(t * halfTheta) / sinHalfTheta;
+	//calculate Quaternion.
+	qm.w = (qa.w * ratioA + qb.w * ratioB);
+	qm.x = (qa.x * ratioA + qb.x * ratioB);
+	qm.y = (qa.y * ratioA + qb.y * ratioB);
+	qm.z = (qa.z * ratioA + qb.z * ratioB);
+	return qm;
+}
+
 Vector3 Quaternion::Euler()
 {
 	Vector3 angles;
@@ -99,16 +137,54 @@ Vector3 Quaternion::Euler()
 
 }
 
+Quaternion Quaternion::Inverse()
+{	
+
+	return Conjugate() / pow(Magnitude(), 2);
+}
+
+Quaternion Quaternion::Invert(Quaternion q)
+{
+	return q.Inverse();
+}
+
+Quaternion Quaternion::Conjugate()
+{
+	return Quaternion( - x ,- y ,- z,w);
+}
+
+float Quaternion::Magnitude()
+{
+	return sqrt(x*x + y*y+z*z+w*w);
+}
+
 bool Quaternion::operator==(Quaternion other)
 {
 	return x == other.x && y == other.y && z == other.z && w == other.w;
 }
+Quaternion Quaternion::operator/(float f)
+{
+	return Quaternion(x/f,y/f,z/f,w/f);
+}
 Quaternion Quaternion::operator*(Quaternion other)
 {
+	Quaternion a = *this;
+	Quaternion b = other;
+	Quaternion q = Quaternion(
+		a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,   // i
+		a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,   // j
+		a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w,   // k
+		a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z);  // 1
 	
-	return Quaternion(
-		other.x * x - other.y * y - other.z * z - other.w * w,
-		other.x * y + other.y * x - other.z * w + other.w * z,
-		other.x * z + other.y * w + other.z * x - other.w * y,
-		other.x * w - other.y * z + other.z * y + other.w * x);
+	return q;
+}
+
+Quaternion Quaternion::operator*(float f)
+{
+	return Quaternion(x*f,y*f,z*f,w*f);
+}
+
+Quaternion Quaternion::operator+(Quaternion b)
+{
+	return Quaternion(x + b.x ,y+b.y,z+b.z,w+b.w);
 }
