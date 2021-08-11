@@ -86,6 +86,15 @@ Vector3 EngineMath::Vector3::CrossProdut(Vector3 a, Vector3 b)
 	return Vector3(a.y*b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
 }
 
+Vector3 EngineMath::Vector3::Lerp(Vector3 a, Vector3 b, float t)
+{
+	if (t < 0)
+		t = 0;
+	if (t > 1)
+		t = 1;
+	return a * (1-t)  + b * t ;
+}
+
 
 
 

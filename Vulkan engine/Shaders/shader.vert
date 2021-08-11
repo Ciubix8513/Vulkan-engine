@@ -9,12 +9,16 @@ layout (binding = 0) uniform Matricies
 	mat4 world;
 	mat4 view;
 	mat4 proj;
-};
+} ubo;
 
 void main()
 {
 
-	gl_Position = vec4(inPosition,1.0);
+	vec4 pos  = vec4(inPosition,1.0);
+	pos = ubo.world * pos;
+	pos = ubo.view * pos;
+	pos = ubo.proj * pos;
+	gl_Position = pos; 
 	fragColor = inColor;
 }
 

@@ -42,7 +42,7 @@ Quaternion::Quaternion(Vector2 xy, Vector2 zw)
 
 Quaternion::Quaternion(Vector3 rotation)
 {
-	Vector3 rot = rotation; //* Deg2Rad;
+	Vector3 rot = rotation* Deg2Rad;
 	float cy = (float)cos(rot.y * 0.5);
 	float sy = (float)sin(rot.y * 0.5);
 	float cp = (float)cos(rot.x * 0.5);
@@ -133,8 +133,7 @@ Vector3 Quaternion::Euler()
 	double cosy_cosp = 1 - 2 * (y * y + z * z);
 	angles.y = std::atan2(siny_cosp, cosy_cosp);
 
-	return angles;
-
+	return angles * (PI *2);
 }
 
 Quaternion Quaternion::Inverse()

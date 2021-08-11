@@ -21,15 +21,12 @@ private:
 	void InitWindow(size_t width = 800, size_t height = 600);
 	void MainLoop();
 	void CleanUp();
-	void UpdateTime();
+
 	static void frameBufferResizeCallBack(GLFWwindow* wnd, int w, int h);
 	
-	std::chrono::time_point<std::chrono::system_clock> m_lastTime;
-	double m_deltaTime;
+	
 	int m_FPSupdateInterval;
-	uint64_t frames;
-	uint64_t fps;
-
+	Time* m_time;
 	GLFWwindow* m_wnd;
 	Vulkan* m_vulkan;
 };

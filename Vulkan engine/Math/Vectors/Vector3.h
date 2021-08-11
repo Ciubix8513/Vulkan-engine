@@ -33,6 +33,7 @@ namespace EngineMath
 		void Normalize();
 		static float DotProduct(Vector3 a, Vector3 b);
 		static Vector3 CrossProdut(Vector3 a, Vector3 b);
+		static Vector3 Lerp(Vector3 a, Vector3 b, float t);
 #pragma endregion
 
 #pragma region operators

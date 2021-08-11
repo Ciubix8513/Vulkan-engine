@@ -13,7 +13,7 @@ Vector4 EngineMath::TransformVector(Vector4 v, Matrix4x4 m)
 Matrix4x4 EngineMath::PerspectiveProjectionMatrix(float FOV, float screenAspect, float screenNear, float screenDepth)
 {
     float xScale, yScale, C,  D;
-    yScale = 1 / (float)tan(FOV / 2);
+    yScale = 1 / (float)tan((FOV * Deg2Rad) / 2);
     xScale = yScale / screenAspect;
 
 
@@ -182,7 +182,6 @@ Matrix4x4 EngineMath::ScaleMatrix(float scale)
     return a;
 }
 //----------------------------------------
-
 Vector3 EngineMath::Normalized(Vector3 v)
 {
     if(v != Vector3(0,0,0))

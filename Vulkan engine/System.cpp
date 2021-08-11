@@ -5,10 +5,13 @@ System::System()
 	m_wnd = 0;
 	m_vulkan = 0;
 	m_FPSupdateInterval = 1;
+	m_time = 0;
 }
 
 void System::Run()
 {
+	m_time = new Time();
+	m_time->m_begin = std::chrono::system_clock::now();
 	int a = 1;
 	InitWindow(800, 600);
 	m_vulkan = new Vulkan();
@@ -17,10 +20,11 @@ void System::Run()
 	s.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 	s.swapChainImgCount = 3;
 	s.maxFramesInFlight = 2;
+	s.TimePtr = m_time;
 
 	m_vulkan->Init(m_wnd,s);
 	std::cout << "Finished Vulkan initialisation\n";
-	m_lastTime = std::chrono::system_clock::now();
+
 	//start main loop
 	MainLoop();
 
@@ -48,7 +52,7 @@ void System::UpdateFPS()
 	//TODO Add calculation of average fps beetween title updates
 	while (!glfwWindowShouldClose(m_wnd))
 	{
-		float fps = 1 / m_deltaTime;
+		float fps = 1 / m_time->GetDeltaT();
 		std::ostringstream ss;
 		ss << fps;
 		glfwSetWindowTitle(m_wnd, ((std::string)"Vulkan engine   FPS: " + ss.str()).c_str());
@@ -68,7 +72,7 @@ void System::MainLoop()
 		//process window events
 		glfwPollEvents();
 		//Update time and dTime
-		UpdateTime();	
+		m_time->Update();
 		//Draw frame
 		m_vulkan->DrawFrame();
 	}
@@ -88,21 +92,13 @@ void System::CleanUp()
 	glfwDestroyWindow(m_wnd);
 	//Terminate glfw
 	glfwTerminate();
-	std::cout << "Avg FPS = " << fps / (double)frames << "\n";
+	
+	delete m_time;
+	m_time = 0;
 	return;
 
 }
 
-void System::UpdateTime()
-{
-	auto time = std::chrono::system_clock::now();
-	std::chrono::duration<double> SecSinceLastFrame = time - m_lastTime;
-	m_deltaTime = SecSinceLastFrame.count();
-	m_lastTime = time;
-	fps += (1 / (double)m_deltaTime);
-	frames++;
-	return;
-}
 
 
 

@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <fstream>
 #include "Math/EngineMath.h"
+#include "Time.h"
+
 
 //Load function
 static VkResult CreateDebugUtilsMessengerExt(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreatInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
@@ -46,6 +48,7 @@ struct SwapChainSupportDetails
 
 struct Settings
 {
+	Time* TimePtr;
 	VkPresentModeKHR presentMode;
 	uint32_t swapChainImgCount;
 	uint32_t maxFramesInFlight;
@@ -109,6 +112,8 @@ private:
 	void CreateDescriptorSetLayout();
 	void CreateUniformBuffers();
 	void UpdateUniformBuffer(uint32_t imgIndex);
+	void CreateDescriptorPool();
+	void CreateDescriptorSet();
 
 	std::vector<const char*> getRequiredExtensions();
 
@@ -119,7 +124,6 @@ private:
 		void* pUserData);
 
 #pragma region Members
-
 
 	Settings m_settings;
 	VkInstance m_instance;
@@ -151,12 +155,16 @@ private:
 	bool m_resized;
 	VkBuffer m_vertexBuffer;
 	VkBuffer m_indexBuffer;
+	VkDescriptorPool m_descPool;
+	std::vector<VkDescriptorSet> m_descSets;
 
 	VkDeviceMemory m_vertexBufferMemory;
 	VkDeviceMemory m_indexBufferMemory;
 
 	std::vector<VkBuffer> m_uBuffers;
 	std::vector<VkDeviceMemory> m_uBuffersMem;
+	Quaternion rot;
+	Vector3 rot3;
 
 	//List of required device extensions
 	const std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
@@ -164,10 +172,10 @@ private:
 	const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
 public:
 	const std::vector<Vertex> vertices = {
-	{{-0.5f, -0.5f,0}, {1.0f, 0.0f, 0.0f}},
-	{{0.5f, -0.5f,0}, {0.0f, 1.0f, 0.0f}},
-	{{0.5f, 0.5f,0}, {0.0f, 0.0f, 1.0f}},
-	{{-0.5f, 0.5f,0}, {1.0f, 1.0f, 1.0f}}
+	{{-0.5f, 0,-0.5f}, {1.0f, 0.0f, 0.0f}},
+	{{0.5f,0,-0.5f}, {0.0f, 1.0f, 0.0f}},
+	{{0.5f,0, 0.5f}, {0.0f, 0.0f, 1.0f}},
+	{{-0.5f,0, 0.5f}, {1.0f, 1.0f, 1.0f}}
 	};
 	const std::vector<uint16_t> indecies = { 0,1,2,2,3,0 };
 #ifdef NDEBUG
