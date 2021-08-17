@@ -149,6 +149,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ImageLoader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Math\EngineMath.cpp" />
     <ClCompile Include="Math\Matrices\Matrix4x4.cpp" />
@@ -161,6 +162,7 @@
     <ClCompile Include="Vulkan.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ImageLoader.h" />
     <ClInclude Include="Math\EngineMath.h" />
     <ClInclude Include="Math\Matrices\Matrix4x4.h" />
     <ClInclude Include="Math\Vectors\Quarernion.h" />

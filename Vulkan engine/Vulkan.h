@@ -13,7 +13,7 @@
 #include <fstream>
 #include "Math/EngineMath.h"
 #include "Time.h"
-
+#include "ImageLoader.h"
 
 //Load function
 static VkResult CreateDebugUtilsMessengerExt(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreatInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
@@ -77,7 +77,8 @@ public:
 	void Init(GLFWwindow* wnd,Settings settings);
 	void Shutdown();
 	void DrawFrame();
-	
+	void CreateImage();
+	void CreateImage(uint32_t width, uint32_t height, VkFormat formatk, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imgMemory);
 
 private:
 	void CreateInstance();
@@ -114,6 +115,10 @@ private:
 	void UpdateUniformBuffer(uint32_t imgIndex);
 	void CreateDescriptorPool();
 	void CreateDescriptorSet();
+	void TransitionImageLayout(VkImage img, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+	void CopyBufferToImage(VkBuffer buffer, VkImage img, uint32_t width, uint32_t height);
+	VkCommandBuffer BeginSingleUseCmdBuffer();
+	void EndSingleUseCmdBuffer(VkCommandBuffer buffer);
 
 	std::vector<const char*> getRequiredExtensions();
 
@@ -165,6 +170,9 @@ private:
 	std::vector<VkDeviceMemory> m_uBuffersMem;
 	Quaternion rot;
 	Vector3 rot3;
+
+	VkImage m_image;
+	VkDeviceMemory m_ImgMem;
 
 	//List of required device extensions
 	const std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };

@@ -51,6 +51,8 @@ void Vulkan::Init(GLFWwindow* wnd, Settings settings)
 	CreateFrameBuffers();
 	//Create command pool
 	CreateCommandPools();
+	//Create image
+	CreateImage();
 	//Create vertex buffer
 	CreateVertexBuffer();
 	//Create index buffer
@@ -111,6 +113,10 @@ void Vulkan::Shutdown()
 	vkFreeMemory(m_device, m_indexBufferMemory, 0);
 	//Cleanup all swap chain related stuff
 	CleanupSwapChain();
+	//Destroy image
+	vkDestroyImage(m_device, m_image, 0);
+	vkFreeMemory(m_device, m_ImgMem, 0);
+
 	//Destrtoying command pools
 	vkDestroyCommandPool(m_device, m_commandPool, 0);
 	vkDestroyCommandPool(m_device, m_commandPool1, 0);
@@ -909,36 +915,14 @@ void Vulkan::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryP
 
 void Vulkan::CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size)
 {
-	VkCommandBufferAllocateInfo allocInfo{};
-	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandPool = m_commandPool1;
-	allocInfo.commandBufferCount = 1;
-	VkCommandBuffer cmdBuffer;
-	if (vkAllocateCommandBuffers(m_device, &allocInfo, &cmdBuffer) != VK_SUCCESS)
-		throw std::runtime_error("Could not allocate command buffer");
-	VkCommandBufferBeginInfo beginInfo{};
-	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-	if (vkBeginCommandBuffer(cmdBuffer, &beginInfo) != VK_SUCCESS)
-		throw std::runtime_error("Could not begin command buffer");
+	auto buffer = BeginSingleUseCmdBuffer();
 	VkBufferCopy cpyReg{};
 	cpyReg.srcOffset = 0;
 	cpyReg.dstOffset = 0;
 	cpyReg.size = size;
-	vkCmdCopyBuffer(cmdBuffer, src, dst, 1, &cpyReg);
-	if (vkEndCommandBuffer(cmdBuffer) != VK_SUCCESS)
-		throw std::runtime_error("Could not end command buffer");
+	vkCmdCopyBuffer(buffer, src, dst, 1, &cpyReg);
 
-	VkSubmitInfo submitInfo{};
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &cmdBuffer;
-	vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, 0);
-	vkQueueWaitIdle(m_graphicsQueue);
-	vkFreeCommandBuffers(m_device, m_commandPool1, 1, &cmdBuffer);
-
-
+	EndSingleUseCmdBuffer(buffer);
 	return;
 }
 
@@ -1105,6 +1089,110 @@ void Vulkan::CreateDescriptorSet()
 		descWrite.pTexelBufferView = 0;
 		vkUpdateDescriptorSets(m_device, 1, &descWrite, 0, 0);
 	}
+	return;
+}
+
+void Vulkan::TransitionImageLayout(VkImage img, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
+{
+	auto buffer = BeginSingleUseCmdBuffer();
+	VkImageMemoryBarrier barrier{};
+	VkPipelineStageFlags srcStage;
+	VkPipelineStageFlags dstStage;
+
+	barrier.srcAccessMask = 0;
+	barrier.dstAccessMask = 0; 
+
+	if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+	{
+		barrier.srcAccessMask = 0;
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	}
+	else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+	{
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	}
+	else
+		throw std::runtime_error("Unsupported layout transition");
+	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	barrier.oldLayout = oldLayout;
+	barrier.newLayout = newLayout;
+	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.image = img;
+	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	barrier.subresourceRange.baseMipLevel = 0;
+	barrier.subresourceRange.levelCount = 1;
+	barrier.subresourceRange.baseArrayLayer = 0;
+	barrier.subresourceRange.layerCount = 1;
+	
+	
+
+	vkCmdPipelineBarrier(buffer, srcStage, dstStage, 0, 0, 0, 0, 0, 1, &barrier);
+	EndSingleUseCmdBuffer(buffer);
+	return;
+}
+
+void Vulkan::CopyBufferToImage(VkBuffer buffer, VkImage img, uint32_t width, uint32_t height)
+{
+	auto cmd = BeginSingleUseCmdBuffer();
+	VkBufferImageCopy reg{};
+	reg.bufferOffset = 0;
+	reg.bufferRowLength = 0;
+	reg.bufferImageHeight = 0;	
+	reg.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	reg.imageSubresource.mipLevel = 0;	
+	reg.imageSubresource.baseArrayLayer = 0;
+	reg.imageSubresource.layerCount = 1;
+	reg.imageOffset = { 0,0,0 };
+	reg.imageExtent = { width,height,1 };
+
+	vkCmdCopyBufferToImage(cmd, buffer, img, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &reg);
+
+
+
+	EndSingleUseCmdBuffer(cmd);
+	
+	return;
+}
+
+VkCommandBuffer Vulkan::BeginSingleUseCmdBuffer()
+{
+
+	VkCommandBufferAllocateInfo allocInfo{};
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandPool = m_commandPool1;
+	allocInfo.commandBufferCount = 1;
+	VkCommandBuffer cmdBuffer;
+	if (vkAllocateCommandBuffers(m_device, &allocInfo, &cmdBuffer) != VK_SUCCESS)
+		throw std::runtime_error("Could not allocate command buffer");
+	VkCommandBufferBeginInfo beginInfo{};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	if (vkBeginCommandBuffer(cmdBuffer, &beginInfo) != VK_SUCCESS)
+		throw std::runtime_error("Could not begin command buffer");
+	return cmdBuffer;
+
+	
+
+}
+
+void Vulkan::EndSingleUseCmdBuffer(VkCommandBuffer buffer)
+{
+	vkEndCommandBuffer(buffer);
+	VkSubmitInfo submitInfo{};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &buffer;
+	vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, 0);
+	vkQueueWaitIdle(m_graphicsQueue);
+	vkFreeCommandBuffers(m_device, m_commandPool1, 1, &buffer);
+	return;
 }
 
 void Vulkan::DrawFrame()
@@ -1167,6 +1255,70 @@ void Vulkan::DrawFrame()
 
 	m_currentFrame = (m_currentFrame + 1) % m_settings.maxFramesInFlight;
 	return;
+}
+
+void Vulkan::CreateImage()
+{
+	int w, h;
+	unsigned char bpp;
+	auto img = ImageLoader::LoadTGA("Textures/UV_32.tga", h, w, bpp,true);
+	VkDeviceSize imgSize = w * h * 4;
+	
+	VkBuffer stagingBuffer;
+	VkDeviceMemory BuffMem;
+	//Load image into the memory
+	CreateBuffer(imgSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, stagingBuffer, BuffMem);
+	void* data;
+	vkMapMemory(m_device, BuffMem, 0, imgSize, 0, &data);
+	memcpy(data, img, imgSize);
+	vkUnmapMemory(m_device, BuffMem);
+	delete[] img;
+
+	
+
+	CreateImage(w, h, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_image, m_ImgMem);
+	TransitionImageLayout(m_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	//Copy image to image memory
+	CopyBufferToImage(stagingBuffer, m_image, w, h);
+	//Transition layout to shader reading
+	TransitionImageLayout(m_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	//Destroy staging buffer
+	vkDestroyBuffer(m_device, stagingBuffer, 0);
+	//Free memory
+	vkFreeMemory(m_device, BuffMem, 0);
+
+}
+
+void Vulkan::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imgMemory)
+{
+	VkImageCreateInfo info{};
+	info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	info.imageType = VK_IMAGE_TYPE_2D;
+	info.extent.width = width;
+	info.extent.height = height;
+	info.extent.depth = 1;
+	info.mipLevels = 1;
+	info.arrayLayers = 1;
+	info.format = format;
+	info.tiling = tiling;
+	info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	info.usage = usage;
+	info.samples = VK_SAMPLE_COUNT_1_BIT;
+	info.flags = 0;
+		
+	if (vkCreateImage(m_device, &info, 0, &image) != VK_SUCCESS)
+		throw std::runtime_error("Could not create Image");
+
+	VkMemoryRequirements memReq;
+	vkGetImageMemoryRequirements(m_device, image, &memReq);
+	VkMemoryAllocateInfo allocInfo{};
+	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.allocationSize = memReq.size;
+	allocInfo.memoryTypeIndex = FindMemoryType(memReq.memoryTypeBits, properties);
+	if (vkAllocateMemory(m_device, &allocInfo, 0, &imgMemory) != VK_SUCCESS)
+		throw std::runtime_error("Could not allocate memory");
+	vkBindImageMemory(m_device, image, imgMemory, 0);
 }
 
 std::vector<const char*> Vulkan::getRequiredExtensions()

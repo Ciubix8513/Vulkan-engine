@@ -6,7 +6,7 @@
 class ImageLoader
 {
 public:
-	static unsigned char* LoadTGA(std::string file, int &height,int &width, unsigned char& bpp);
+	static unsigned char* LoadTGA(std::string file, int &height,int &width, unsigned char& bpp, bool addAlpha);
 	static unsigned char* LoadBMP(std::string file, int &height,int &width, unsigned char& bpp);
 	private:
 		struct TGAheader
@@ -18,6 +18,14 @@ public:
 			unsigned char data2;
 		};
 #pragma pack(push,1)
+		struct TGAfooter
+		{
+			unsigned short ExtOffset;
+			unsigned char data[2];
+			unsigned short DevOffset;
+			unsigned char data1[2];
+			unsigned char Signature[18];
+		};
 		struct BMPheader 
 		{
 			unsigned char data1[10];

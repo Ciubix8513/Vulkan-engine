@@ -3,7 +3,6 @@
 #define _ENGINE_MATH_H_
 #include"Vectors/Quarernion.h"
 #include "Matrices/Matrix4x4.h"
-using namespace EngineMath;
 
 namespace EngineMath
 {

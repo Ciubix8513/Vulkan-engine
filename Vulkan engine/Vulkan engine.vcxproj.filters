@@ -19,11 +19,11 @@
     <Filter Include="Math">
       <UniqueIdentifier>{e7707ddf-08c9-495f-aac5-1320d80081a6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Image loader">
+      <UniqueIdentifier>{d68221fe-2bf1-4687-b1b5-c7a4051bedb9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="System.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -50,6 +50,12 @@
     </ClCompile>
     <ClCompile Include="Time.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageLoader.cpp">
+      <Filter>Image loader</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -79,6 +85,9 @@
     </ClInclude>
     <ClInclude Include="Time.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageLoader.h">
+      <Filter>Image loader</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
