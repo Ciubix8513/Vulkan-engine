@@ -122,9 +122,12 @@ private:
 	void CopyBufferToImage(VkBuffer buffer, VkImage img, uint32_t width, uint32_t height);
 	VkCommandBuffer BeginSingleUseCmdBuffer();
 	void EndSingleUseCmdBuffer(VkCommandBuffer buffer);
-	VkImageView CreateView(VkImage image,VkFormat format);
+	VkImageView CreateView(VkImage image,VkFormat format,VkImageAspectFlags aspect);
 	VkSampler CreateSampler();
-
+	void CreateDepthResources();
+	VkFormat FindSupportedFormat(const std::vector<VkFormat>& Candidates, VkImageTiling tiling,VkFormatFeatureFlags features);
+	VkFormat FindDepthFormat();
+	bool HasStencilComponent(VkFormat format);
 	std::vector<const char*> getRequiredExtensions();
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -181,18 +184,30 @@ private:
 	VkDeviceMemory m_ImgMem;
 	VkSampler m_sampler;
 
+	VkImage depthImage;
+	VkDeviceMemory depthImageMem;
+	VkImageView depthImageView;
+	
+
 	//List of required device extensions
 	const std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 	//List of used validation layers
 	const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
 public:
 	const std::vector<Vertex> vertices = {
-	{{-0.75f, -0.75f,0}, {1.0f, 0.0f, 0.0f},{1.0f,0.0f}},
-	{{0.75f,-0.75f,0}, {0.0f, 1.0f, 0.0f},{0.0f,0.0f}},
-	{{0.75f, 0.75f,0}, {0.0f, 0.0f, 1.0f},{0.0f,1.0f} },
-	{{-0.75f, 0.75f,0}, {1.0f, 1.0f, 1.0f},{1.0f,1.0f}}
+	{{-0.5f,0.5f,-0.5f}, {1.0f, 0.0f, 0.0f},{1.0f,0.0f}},
+	{{0.5f,0.5f,-0.5f}, {0.0f, 1.0f, 0.0f},{0.0f,0.0f}},
+	{{0.5f,0.5f, 0.5f}, {0.0f, 0.0f, 1.0f},{0.0f,1.0f} },
+	{{-0.5f,0.5f, 0.5f}, {1.0f, 1.0f, 1.0f},{1.0f,1.0f}},
+
+	{{-0.5f,0,-0.5f}, {1.0f, 0.0f, 0.0f},{1.0f,0.0f}},
+	{{0.5f,0,-0.5f}, {0.0f, 1.0f, 0.0f},{0.0f,0.0f}},
+	{{0.5f,0, 0.5f}, {0.0f, 0.0f, 1.0f},{0.0f,1.0f} },
+	{{-0.5f,0, 0.5f}, {1.0f, 1.0f, 1.0f},{1.0f,1.0f}}
 	};
-	const std::vector<uint16_t> indecies = { 0,1,2,2,3,0 };
+	const std::vector<uint16_t> indecies = 
+	{ 0,1,2,2,3,0,
+	4,5,6,6,7,4};
 #ifdef NDEBUG
 	const bool enableValidationLayers = false;
 #else
