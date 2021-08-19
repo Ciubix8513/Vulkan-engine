@@ -19,7 +19,7 @@
     <Filter Include="Math">
       <UniqueIdentifier>{e7707ddf-08c9-495f-aac5-1320d80081a6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Image loader">
+    <Filter Include="File managing">
       <UniqueIdentifier>{d68221fe-2bf1-4687-b1b5-c7a4051bedb9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -55,7 +55,10 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ImageLoader.cpp">
-      <Filter>Image loader</Filter>
+      <Filter>File managing</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelLoader.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -87,7 +90,10 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ImageLoader.h">
-      <Filter>Image loader</Filter>
+      <Filter>File managing</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelLoader.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

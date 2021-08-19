@@ -157,6 +157,7 @@
     <ClCompile Include="Math\Vectors\Vector2.cpp" />
     <ClCompile Include="Math\Vectors\Vector3.cpp" />
     <ClCompile Include="Math\Vectors\Vector4.cpp" />
+    <ClCompile Include="ModelLoader.cpp" />
     <ClCompile Include="System.cpp" />
     <ClCompile Include="Time.cpp" />
     <ClCompile Include="Vulkan.cpp" />
@@ -169,6 +170,7 @@
     <ClInclude Include="Math\Vectors\Vector2.h" />
     <ClInclude Include="Math\Vectors\Vector3.h" />
     <ClInclude Include="Math\Vectors\Vector4.h" />
+    <ClInclude Include="ModelLoader.h" />
     <ClInclude Include="System.h" />
     <ClInclude Include="Time.h" />
     <ClInclude Include="Vulkan.h" />

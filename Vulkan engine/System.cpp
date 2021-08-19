@@ -10,6 +10,7 @@ System::System()
 
 void System::Run()
 {
+	
 	m_time = new Time();
 	m_time->m_begin = std::chrono::system_clock::now();
 	int a = 1;

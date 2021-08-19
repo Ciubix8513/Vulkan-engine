@@ -1,8 +1,10 @@
 #include <iostream>
 #include "System.h"
+#include "ModelLoader.h"
 
 int main ()
 {		
+	ModelLoader::LoadOBJ("cube.obj");
 	std::cout << "Application start\n";
 	System* system = new System;
 	system->Run();

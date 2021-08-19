@@ -4,7 +4,6 @@
 #include <thread>
 #include<chrono>
 #include <GLFW/glfw3.h>
-
 #ifndef _SYSTEM_H_
 #define _SYSTEM_H_
 
