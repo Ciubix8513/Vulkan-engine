@@ -21,7 +21,7 @@ private:
 	void InitWindow(size_t width = 800, size_t height = 600);
 	void MainLoop();
 	void CleanUp();
-
+	static void KeyCallback(GLFWwindow* wnd, int key, int scancode, int action, int mods);
 	static void frameBufferResizeCallBack(GLFWwindow* wnd, int w, int h);
 	
 	

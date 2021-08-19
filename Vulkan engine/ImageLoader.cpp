@@ -96,7 +96,7 @@ unsigned char* ImageLoader::LoadTGA(std::string file, int& height, int& width,un
 
 }
 
-unsigned char* ImageLoader::LoadBMP(std::string file, int& height, int& width, unsigned char& bpp)
+unsigned char* ImageLoader::LoadBMP(std::string file, int& height, int& width, unsigned char& bpp, bool switchRB )
 {
 	//open file
 	std::FILE* f;
@@ -128,10 +128,30 @@ unsigned char* ImageLoader::LoadBMP(std::string file, int& height, int& width, u
 	bpp = header.bpp;
 	unsigned int RowSize = ((header.bpp * header.width) / 32) * 4;
 	unsigned int PixelArraySize = RowSize * header.height;
-	if(RowSize != width)
+	if(RowSize != (width * (bpp /8)))
 		throw std::runtime_error("Bit map padding is not supported");
-	unsigned char* output = new unsigned char[PixelArraySize];
-	if (fread(&output, 1, PixelArraySize, f) != PixelArraySize)
+	//unsigned char* output = new unsigned char[PixelArraySize];
+	unsigned char* pixels = new unsigned char[header.imgSize];
+	auto count = fread(pixels, 1, header.imgSize, f);
+	if (count != header.imgSize)
 		throw std::runtime_error("Could not read pixel array");
-	return output;
+	fclose(f);
+	if(switchRB)
+	{
+		unsigned char* output = new unsigned char[header.imgSize];
+		for (size_t k = 0; k < header.imgSize-4;k+=4) 
+		{
+
+
+			output[k + 0] = pixels[k + 2];
+			output[k + 1] = pixels[k + 1];
+			output[k + 2] = pixels[k + 0];
+			output[k + 3] = pixels[k + 3];
+
+		}
+		delete[] pixels;
+		return output;
+	}
+	else	
+	return pixels;
 }

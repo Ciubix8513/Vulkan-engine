@@ -42,7 +42,7 @@ void System::InitWindow(size_t width, size_t height)
 	m_wnd = glfwCreateWindow(width, height, "Vulkan engine", 0, 0);
 	glfwSetWindowUserPointer(m_wnd, this);
 	glfwSetFramebufferSizeCallback(m_wnd, frameBufferResizeCallBack);
-
+	glfwSetKeyCallback(m_wnd, KeyCallback);
 	return;
 
 }
@@ -55,7 +55,7 @@ void System::UpdateFPS()
 		float fps = 1 / m_time->GetDeltaT();
 		std::ostringstream ss;
 		ss << fps;
-		glfwSetWindowTitle(m_wnd, ((std::string)"Vulkan engine   FPS: " + ss.str()).c_str());
+		glfwSetWindowTitle(m_wnd, ((std::string)"Vulkan Engine  FPS: " + ss.str()).c_str());
 		std::this_thread::sleep_for(std::chrono::seconds(m_FPSupdateInterval));
 		
 	}
@@ -75,6 +75,7 @@ void System::MainLoop()
 		m_time->Update();
 		//Draw frame
 		m_vulkan->DrawFrame();
+
 	}
 	TitleUpdateThread.join();
 	return;
@@ -97,6 +98,12 @@ void System::CleanUp()
 	m_time = 0;
 	return;
 
+}
+
+void System::KeyCallback(GLFWwindow* wnd, int key, int scancode, int action, int mods)
+{
+
+	return;
 }
 
 

@@ -7,7 +7,7 @@ class ImageLoader
 {
 public:
 	static unsigned char* LoadTGA(std::string file, int &height,int &width, unsigned char& bpp, bool addAlpha);
-	static unsigned char* LoadBMP(std::string file, int &height,int &width, unsigned char& bpp);
+	static unsigned char* LoadBMP(std::string file, int &height,int &width, unsigned char& bpp,bool switchRB = true);
 	private:
 		struct TGAheader
 		{
@@ -40,7 +40,8 @@ public:
 			unsigned short colorPlanes;
 			unsigned short bpp;
 			unsigned int compression;
-			unsigned char data[12];
+			unsigned int imgSize;
+			unsigned char data[8];
 			unsigned int palete;
 			unsigned int importantColors;
 

@@ -11,9 +11,11 @@
 #include <cstdint>
 #include <algorithm>
 #include <fstream>
+#include <array>
 #include "Math/EngineMath.h"
 #include "Time.h"
 #include "ImageLoader.h"
+#include <string>
 
 //Load function
 static VkResult CreateDebugUtilsMessengerExt(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreatInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
@@ -58,6 +60,7 @@ struct Vertex
 {
 	EngineMath::Vector3 Position;
 	EngineMath::Vector3 Color;
+	EngineMath::Vector2 UV;
 	static VkVertexInputBindingDescription getBindingDescription();
 	static std::vector<VkVertexInputAttributeDescription> getAttributeDescription();
 };
@@ -76,11 +79,11 @@ public:
 	Vulkan();
 	void Init(GLFWwindow* wnd,Settings settings);
 	void Shutdown();
-	void DrawFrame();
-	void CreateImage();
+	void DrawFrame();	
 	void CreateImage(uint32_t width, uint32_t height, VkFormat formatk, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imgMemory);
 
 private:
+	void CreateImage(std::string path);
 	void CreateInstance();
 	bool CheckValidationLevelSupport();
 	bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
@@ -119,6 +122,8 @@ private:
 	void CopyBufferToImage(VkBuffer buffer, VkImage img, uint32_t width, uint32_t height);
 	VkCommandBuffer BeginSingleUseCmdBuffer();
 	void EndSingleUseCmdBuffer(VkCommandBuffer buffer);
+	VkImageView CreateView(VkImage image,VkFormat format);
+	VkSampler CreateSampler();
 
 	std::vector<const char*> getRequiredExtensions();
 
@@ -172,7 +177,9 @@ private:
 	Vector3 rot3;
 
 	VkImage m_image;
+	VkImageView m_imgView;
 	VkDeviceMemory m_ImgMem;
+	VkSampler m_sampler;
 
 	//List of required device extensions
 	const std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
@@ -180,10 +187,10 @@ private:
 	const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
 public:
 	const std::vector<Vertex> vertices = {
-	{{-0.5f, 0,-0.5f}, {1.0f, 0.0f, 0.0f}},
-	{{0.5f,0,-0.5f}, {0.0f, 1.0f, 0.0f}},
-	{{0.5f,0, 0.5f}, {0.0f, 0.0f, 1.0f}},
-	{{-0.5f,0, 0.5f}, {1.0f, 1.0f, 1.0f}}
+	{{-0.75f, -0.75f,0}, {1.0f, 0.0f, 0.0f},{1.0f,0.0f}},
+	{{0.75f,-0.75f,0}, {0.0f, 1.0f, 0.0f},{0.0f,0.0f}},
+	{{0.75f, 0.75f,0}, {0.0f, 0.0f, 1.0f},{0.0f,1.0f} },
+	{{-0.75f, 0.75f,0}, {1.0f, 1.0f, 1.0f},{1.0f,1.0f}}
 	};
 	const std::vector<uint16_t> indecies = { 0,1,2,2,3,0 };
 #ifdef NDEBUG
