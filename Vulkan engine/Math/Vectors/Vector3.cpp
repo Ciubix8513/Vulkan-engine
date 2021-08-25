@@ -164,3 +164,10 @@ bool EngineMath::Vector3::operator!=(Vector3 v)
 	return false;	
 	return true;
 }
+
+EngineMath::Vector3int::Vector3int(int NewX, int NewY, int NewZ)
+{
+	x = NewX;
+	y = NewY;
+	z = NewZ;
+}

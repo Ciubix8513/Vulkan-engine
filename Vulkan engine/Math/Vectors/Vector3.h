@@ -6,6 +6,13 @@ using namespace EngineMath;
 
 namespace EngineMath 
 {
+	struct Vector3int
+	{
+	public:
+		Vector3int(int NewX, int NewY, int NewZ);
+		int x, y, z;
+
+	};
 
 	struct Vector3
 	{
