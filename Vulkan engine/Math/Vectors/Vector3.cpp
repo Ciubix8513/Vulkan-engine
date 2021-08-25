@@ -171,3 +171,10 @@ EngineMath::Vector3int::Vector3int(int NewX, int NewY, int NewZ)
 	y = NewY;
 	z = NewZ;
 }
+
+EngineMath::Vector3int::Vector3int()
+{
+	x = 0;
+	y = 0;
+	z = 0;
+}

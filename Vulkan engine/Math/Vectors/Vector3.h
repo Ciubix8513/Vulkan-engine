@@ -10,6 +10,7 @@ namespace EngineMath
 	{
 	public:
 		Vector3int(int NewX, int NewY, int NewZ);
+		Vector3int();
 		int x, y, z;
 
 	};
