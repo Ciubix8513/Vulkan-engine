@@ -46,7 +46,6 @@ namespace EngineMath
 		void operator-=(Vector2 v);
 		void operator*=(float c);
 		void operator/=(float c);
-		 operator DirectX::XMFLOAT2() ;
 #pragma endregion
 		float x,y;	
 	};

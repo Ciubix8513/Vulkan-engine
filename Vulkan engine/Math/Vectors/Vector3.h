@@ -12,7 +12,9 @@ namespace EngineMath
 		Vector3int(int NewX, int NewY, int NewZ);
 		Vector3int();
 		int x, y, z;
-
+		bool operator==(Vector3int other);
+		friend	bool operator==(const Vector3int& lhs, const Vector3int& rhs);
+		bool operator!= (Vector3int other);
 	};
 
 	struct Vector3

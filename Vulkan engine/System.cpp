@@ -24,8 +24,7 @@ void System::Run()
 	s.TimePtr = m_time;
 
 	m_vulkan->Init(m_wnd,s);
-	std::cout << "Finished Vulkan initialisation\n";
-
+	std::cout << "Finished initialisation, intialisation took: " << ((std::chrono::duration<double>)(std::chrono::system_clock::now() - m_time->m_begin)).count()  <<'\n';
 	//start main loop
 	MainLoop();
 

@@ -22,7 +22,13 @@ Vulkan::Vulkan()
 
 void Vulkan::Init(GLFWwindow* wnd, Settings settings)
 {
-
+	
+	//TODO delete this
+	//Load model in a separete thread;
+	//Model by nicolekeane https://www.artstation.com/notthatkeane (CC BY-NC-SA 4.0) (slightly edited by me) 
+	std::thread mesh([this] { this->LoadMesh("Data/Girl.obj"); });
+	
+	
 	//Applying settings
 	m_settings = settings;
 	//Set window ptr
@@ -54,7 +60,8 @@ void Vulkan::Init(GLFWwindow* wnd, Settings settings)
 	//Create frame buffers
 	CreateFrameBuffers();	
 	//Create image
-	CreateImage("Textures/0.BMP");	
+	CreateImage("Data/Girl.BMP");	
+	mesh.join();
 	//Create vertex buffer
 	CreateVertexBuffer();
 	//Create index buffer
@@ -158,10 +165,10 @@ void Vulkan::CreateInstance()
 	VkApplicationInfo appInfo{};
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 	appInfo.pApplicationName = "Vulkan engine";
-	appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+	appInfo.applicationVersion = VK_MAKE_VERSION(0, 0, 1);
 	appInfo.pEngineName = "This is the engine lol";
-	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-	appInfo.apiVersion = VK_API_VERSION_1_0;
+	appInfo.engineVersion = VK_MAKE_VERSION(0, 0, 1);
+	appInfo.apiVersion = VK_API_VERSION_1_2;
 
 	VkInstanceCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -231,10 +238,11 @@ bool Vulkan::CheckDeviceExtensionSupport(VkPhysicalDevice device)
 {
 	uint32_t extensionCount = 0;
 	vkEnumerateDeviceExtensionProperties(device, 0, &extensionCount, 0);
+	
 
-	std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+	std::vector<VkExtensionProperties> availableExtensions(extensionCount);	
 	vkEnumerateDeviceExtensionProperties(device, 0, &extensionCount, availableExtensions.data());
-
+	
 	std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
 	for (size_t i = 0; i < extensionCount; i++)
 		requiredExtensions.erase(availableExtensions[i].extensionName);
@@ -350,7 +358,7 @@ QueueFamilyIndecies Vulkan::findQueueFamilies(VkPhysicalDevice device)
 		if (presentSupport)
 			indecies.presentFamily = i;
 		if (Families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
-			indecies.graphicsFamily = i;
+			indecies.graphicsFamily = i;		
 	}
 
 	return indecies;
@@ -591,8 +599,8 @@ void Vulkan::CreateRenderPass()
 void Vulkan::CreateGraphicsPipeline()
 {
 	//Create modules
-	VkShaderModule vShaderModule = CreateShaderModule("shaders/vert.spv");
-	VkShaderModule fShaderModule = CreateShaderModule("shaders/frag.spv");
+	VkShaderModule vShaderModule = CreateShaderModule("Data/shaders/vert.spv");
+	VkShaderModule fShaderModule = CreateShaderModule("Data/shaders/frag.spv");
 	//Vertex shader stage info
 	VkPipelineShaderStageCreateInfo vShaderStageCreationInfo{};
 	vShaderStageCreationInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -646,8 +654,8 @@ void Vulkan::CreateGraphicsPipeline()
 	rasterInfo.rasterizerDiscardEnable = VK_FALSE;
 	rasterInfo.polygonMode = VK_POLYGON_MODE_FILL;
 	rasterInfo.lineWidth = 1.0f;
-	rasterInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-	rasterInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	rasterInfo.cullMode = VK_CULL_MODE_NONE;
+	rasterInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
 	rasterInfo.depthBiasEnable = VK_FALSE;
 	rasterInfo.depthBiasConstantFactor = 0.0f;
 	rasterInfo.depthBiasClamp = 0.0f;
@@ -946,6 +954,7 @@ void Vulkan::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryP
 	allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
 	if (vkAllocateMemory(m_device, &allocInfo, 0, &memory) != VK_SUCCESS)
 		throw std::runtime_error("Could not allocate vertex buffer memory");
+	
 	vkBindBufferMemory(m_device, Buffer, memory, 0);
 	return;
 }
@@ -1073,7 +1082,7 @@ void Vulkan::UpdateUniformBuffer(uint32_t imgIndex)
 		rot3.z -= 360;
 	mat.world = TransformationMatrix(Vector3(0, 0, 0), rot3, Vector3(1, 1, 1));
 	mat.proj = EngineMath::PerspectiveProjectionMatrix(60.0f, (float)m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 10.0f);
-	mat.view = LookAtMatrix(Vector3(0, 1.5f, -1.5f), Vector3(0, 0, 1), Vector3(0, 1, 0));
+	mat.view = LookAtMatrix(Vector3(0, 3, -3), Vector3(0, 0, 1), Vector3(0, 1, 0));
 	mat.proj._m11 *= -1;
 	//mat.world = Identity();
 	
@@ -1421,6 +1430,18 @@ void Vulkan::DrawFrame()
 
 
 
+void Vulkan::LoadMesh(std::string path)
+{
+	auto m = ModelLoader::LoadOBJ(path);
+	vertices.resize(m.numVertecies);
+	indecies.resize(m.numIndecies);
+	memcpy(vertices.data(), m.Vertices, m.numVertecies * sizeof(Vertex));
+	delete[] m.Vertices;
+	memcpy(indecies.data(), m.Indecies, m.numIndecies * sizeof(uint32_t));
+	delete[] m.Indecies;
+	return;
+}
+
 void Vulkan::CreateImage(std::string path)
 {
 	int w, h;
@@ -1451,6 +1472,7 @@ void Vulkan::CreateImage(std::string path)
 	vkDestroyBuffer(m_device, stagingBuffer, 0);
 	//Free memory
 	vkFreeMemory(m_device, BuffMem, 0);
+	
 	m_imgView = CreateView(m_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 	m_sampler = CreateSampler();
 	return;
@@ -1485,6 +1507,16 @@ void Vulkan::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkIma
 	if (vkAllocateMemory(m_device, &allocInfo, 0, &imgMemory) != VK_SUCCESS)
 		throw std::runtime_error("Could not allocate memory");
 	vkBindImageMemory(m_device, image, imgMemory, 0);
+}
+
+uint32_t Vulkan::GetCurrentMemUsage()
+{
+	VkPhysicalDeviceMemoryBudgetPropertiesEXT prop{};
+	prop.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_BUDGET_PROPERTIES_EXT;
+	
+
+
+	return uint32_t();
 }
 
 std::vector<const char*> Vulkan::getRequiredExtensions()
@@ -1535,6 +1567,8 @@ VKAPI_ATTR VkBool32 VKAPI_CALL Vulkan::debugCallback(VkDebugUtilsMessageSeverity
 	return VK_FALSE;
 }
 
+
+
 VkVertexInputBindingDescription Vertex::getBindingDescription()
 {
 	VkVertexInputBindingDescription desc{};
@@ -1554,12 +1588,13 @@ std::vector<VkVertexInputAttributeDescription> Vertex::getAttributeDescription()
 
 	desc[1].binding = 0;
 	desc[1].location = 1;
-	desc[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-	desc[1].offset = offsetof(Vertex, Color);
+	desc[1].format = VK_FORMAT_R32G32_SFLOAT;
+	desc[1].offset = offsetof(Vertex, UV);
 
 	desc[2].binding = 0;
 	desc[2].location = 2;
-	desc[2].format = VK_FORMAT_R32G32_SFLOAT;
-	desc[2].offset = offsetof(Vertex, UV);
+	desc[2].format = VK_FORMAT_R32G32B32_SFLOAT;
+	desc[2].offset = offsetof(Vertex, Color);
+
 	return desc;
 }

@@ -178,3 +178,19 @@ EngineMath::Vector3int::Vector3int()
 	y = 0;
 	z = 0;
 }
+
+bool EngineMath::Vector3int::operator==(Vector3int other)
+{
+	return x == other.x && y == other.y && z == other.z;
+}
+
+bool EngineMath::Vector3int::operator!=(Vector3int other)
+{
+	return x != other.x || y != other.y || z != other.z;
+}
+
+bool EngineMath::operator==(const Vector3int& lhs, const Vector3int& rhs)
+{
+	
+	return lhs.x == rhs.x&& lhs.y == rhs.y&& lhs.z == rhs.z;
+}
