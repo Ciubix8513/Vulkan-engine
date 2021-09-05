@@ -84,7 +84,7 @@ public:
 	void Init(GLFWwindow* wnd,Settings settings);
 	void Shutdown();
 	void DrawFrame();	
-	void CreateImage(uint32_t width, uint32_t height, VkFormat formatk, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imgMemory);
+	void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels,VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imgMemory);
 	uint32_t GetCurrentMemUsage();
 private:
 	//TODO remove this (tmp solution)
@@ -96,6 +96,7 @@ private:
 	void SetupDebugMessenger();
 	void CreateSurface();
 	void PickPhysicalDevice();
+	VkSampleCountFlagBits GetMaxSamples();
 	bool isDeviceSuitable(VkPhysicalDevice device);
 	QueueFamilyIndecies findQueueFamilies(VkPhysicalDevice device);
 	SwapChainSupportDetails querySwapChainDetails(VkPhysicalDevice device);
@@ -124,13 +125,15 @@ private:
 	void UpdateUniformBuffer(uint32_t imgIndex);
 	void CreateDescriptorPool();
 	void CreateDescriptorSet();
-	void TransitionImageLayout(VkImage img, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+	void TransitionImageLayout(VkImage img, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
+	void GenerateMipmaps(VkImage image, VkFormat imgFormat, int32_t width, int32_t height, uint32_t mipLevels);
 	void CopyBufferToImage(VkBuffer buffer, VkImage img, uint32_t width, uint32_t height);
 	VkCommandBuffer BeginSingleUseCmdBuffer();
 	void EndSingleUseCmdBuffer(VkCommandBuffer buffer);
-	VkImageView CreateView(VkImage image,VkFormat format,VkImageAspectFlags aspect);
+	VkImageView CreateView(VkImage image,VkFormat format,VkImageAspectFlags aspect, uint32_t mipLevels);
 	VkSampler CreateSampler();
 	void CreateDepthResources();
+	void CreateColorResources();
 	VkFormat FindSupportedFormat(const std::vector<VkFormat>& Candidates, VkImageTiling tiling,VkFormatFeatureFlags features);
 	VkFormat FindDepthFormat();
 	bool HasStencilComponent(VkFormat format);
@@ -186,15 +189,27 @@ private:
 	Quaternion rot;
 	Vector3 rot3;
 
+//TODO add a structure/class to manage texture
+#pragma region Texture image
+	uint32_t m_ImgMipLevels;
 	VkImage m_image;
 	VkImageView m_imgView;
 	VkDeviceMemory m_ImgMem;
 	VkSampler m_sampler;
+#pragma endregion
 
 	VkImage depthImage;
 	VkDeviceMemory depthImageMem;
 	VkImageView depthImageView;
 	
+#pragma region MSAA
+	VkImage m_colorImage;
+	VkDeviceMemory m_colorImageMem;
+	VkImageView m_colorImageView;
+	VkSampleCountFlagBits m_msaaSamples;
+
+#pragma endregion
+
 	//List of required device extensions
 	const std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME,VK_EXT_MEMORY_BUDGET_EXTENSION_NAME };
 	//List of used validation layers
