@@ -26,8 +26,16 @@ namespace a
 			unsigned int NumVertices;
 			unsigned int NumIndecies;
 		};
-#pragma pack(pop)
 	public:
+		struct Vertex
+		{
+			EngineMath::Vector3 Position;
+			EngineMath::Vector2 UV;
+			EngineMath::Vector3 Normal;
+			Vertex(Vector3 pos, Vector2 uv, Vector3 normal);
+			Vertex();
+		};
+#pragma pack(pop)
 		enum Attribute
 		{
 			POSITION = 1,
@@ -37,28 +45,21 @@ namespace a
 		};
 		typedef char Attributes;
 
-		struct Vertex
-		{
-			EngineMath::Vector3 Position;
-			EngineMath::Vector2 UV;
-			EngineMath::Vector3 Normal;
-			Vertex(Vector3 pos, Vector2 uv, Vector3 normal);
-			Vertex();
-		};
+		
 		struct Mesh
 		{
 			Vertex* Vertices;
 			unsigned int* Indecies;
-			unsigned int numVerticies;
-			unsigned int numIndecies;
+			size_t numVerticies;
+			size_t numIndecies;
 			Attributes atr;
 			Mesh();
 			//~Mesh();
 		};
 		//Obj file MUST contain ONLY 1(ONE) object
-		static Mesh LoadModel(std::string path);
-		static void SaveModel(Mesh mesh, std::string path);
-		static Mesh ConvertOBJ(std::string path);
+		static Mesh* LoadModel(std::string path);
+		static void SaveModel(Mesh* mesh, std::string path);
+		static Mesh* ConvertOBJ(std::string path);
 		static Vector3int* Triangulate(Vector3int* vertices, uint32_t size);
 	private:
 		//static unsigned int Hash(Vector3int data,int tableSize);

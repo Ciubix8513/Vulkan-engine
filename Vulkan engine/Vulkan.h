@@ -19,6 +19,9 @@
 #include <string>
 #include <thread>
 #include "UI.h"
+#pragma  warning( disable : 4267)
+#pragma warning( disable : 26495 )
+
 //using namespace UI;
 
 class UI;

@@ -1,33 +1,43 @@
 #include "ModelLoader.h"
 
-a::ModelLoader::Mesh a::ModelLoader::LoadModel(std::string path)
+a::ModelLoader::Mesh* a::ModelLoader::LoadModel(std::string path)
 {
-    std::ifstream file(path);
-    if (!file.is_open())
+    std::FILE* file;
+    //TODO FIX THIS!!!
+   
+    if (fopen_s(&file, path.c_str(), "r") !=0)
         throw std::runtime_error("Could not open file");
     
     MDLheader header;
-    file.read((char*)&header, sizeof(header));
+    fread((char*)&header, 1,sizeof(header),file);
     if ((std::string)header.signature != "_LUNAR_MODEL_FORMAT_")
         throw std::runtime_error("Wrong file signature");
-    Mesh mesh{};
-    mesh.atr = header.Attributes;
-    mesh.numIndecies = header.NumIndecies;
-    mesh.numVerticies = header.NumVertices;
-    mesh.Vertices = new Vertex[mesh.numVerticies];
-    mesh.Indecies = new unsigned int[mesh.numIndecies];
-    file.read((char*)mesh.Vertices, sizeof(Vertex) * mesh.numVerticies);
-    file.read((char*)mesh.Indecies, 4U * mesh.numIndecies);
-    file.close();
+    Mesh *mesh = new Mesh;
+    mesh->atr = header.Attributes;
+    mesh->numIndecies = header.NumIndecies;
+    mesh->numVerticies = header.NumVertices;
+    mesh->Vertices = new Vertex[mesh->numVerticies];
+    mesh->Indecies = new unsigned int[mesh->numIndecies];   
+    
+    fread(mesh->Vertices, sizeof(Vertex), mesh->numVerticies,file);   
+   unsigned char* a = new unsigned char[8];
+   
+    
+    fread(a, 8, 1, file);
+   
+    fread(mesh->Indecies, 4U,  mesh->numIndecies,file);
+   
+    fclose(file);
     return mesh;
 }
 
-void a::ModelLoader::SaveModel(Mesh mesh, std::string path)
+void a::ModelLoader::SaveModel(Mesh* mesh, std::string path)
 {
     //File structure:
     //Signature 21 bytes
     //Mesh properties 9 bytes
     //Vertecies data
+    //  Padding PADDING 8 bytes
     //Indecies data
 
     std::ofstream file(path);
@@ -35,21 +45,22 @@ void a::ModelLoader::SaveModel(Mesh mesh, std::string path)
         throw std::runtime_error("Could not create file");
     //Create header
     MDLheader header{};
-    memcpy(header.signature,"_LUNAR_MODEL_FORMAT_",21 );
-    header.Attributes = mesh.atr;
-    header.NumVertices = mesh.numVerticies;
-    header.NumIndecies = mesh.numIndecies;
+    memcpy(header.signature,"_LUNAR_MODEL_FORMAT_",21 );//It's my file type and I get to choose the file signature
+    header.Attributes = mesh->atr;
+    header.NumVertices = mesh->numVerticies;
+    header.NumIndecies = mesh->numIndecies;
     
     file.write((char*)&header, sizeof(header));
-    file.write((char*)mesh.Vertices, sizeof(Vertex) * mesh.numVerticies);
-    file.write((char*)mesh.Indecies, 4U * mesh.numIndecies);
+    file.write((char*)mesh->Vertices, sizeof(Vertex) * mesh->numVerticies);
+    file.write((char*)"PADDING", 8);
+    file.write((char*)mesh->Indecies, 4U * mesh->numIndecies);
     file.close();
     return;
 
     
 }
 
-a::ModelLoader::Mesh a::ModelLoader::ConvertOBJ(std::string path)
+a::ModelLoader::Mesh* a::ModelLoader::ConvertOBJ(std::string path)
 {
     //TODO Mesure how long my code takes to run
    // auto BeginTime = std::chrono::system_clock::now();
@@ -63,8 +74,8 @@ a::ModelLoader::Mesh a::ModelLoader::ConvertOBJ(std::string path)
     std::vector<Vector3> Normals;
     std::vector<Vector3int> Vertecies;
     std::string word;
-    Mesh mesh;
-    mesh.atr = 0;
+    Mesh* mesh = new Mesh;
+    mesh->atr = 0;
 
     //Read data
     while (f.good())
@@ -73,36 +84,36 @@ a::ModelLoader::Mesh a::ModelLoader::ConvertOBJ(std::string path)
         //Get position data
         if (word == "v")
         {
-            mesh.atr |= POSITION;
+            mesh->atr |= POSITION;
             Vector3 tmp;
             f >> word;
-            tmp.x = atof(word.c_str());
+            tmp.x = (float)atof(word.c_str());
             f >> word;
-            tmp.y = atof(word.c_str());
+            tmp.y = (float)atof(word.c_str());
             f >> word;
-            tmp.z = atof(word.c_str());
+            tmp.z = (float)atof(word.c_str());
             Positions.push_back(tmp);
         }
         else if (word == "vt")
         {
-            mesh.atr |= UV;
+            mesh->atr |= UV;
             Vector2 tmp;
             f >> word;
-            tmp.x = atof(word.c_str());
+            tmp.x = (float)atof(word.c_str());
             f >> word;
-            tmp.y = atof(word.c_str());
+            tmp.y = (float)atof(word.c_str());
             UVs.push_back(tmp);
         }
         else if (word == "vn")
         {
-            mesh.atr |= NORMAL;
+            mesh->atr |= NORMAL;
             Vector3 tmp;
             f >> word;
-            tmp.x = atof(word.c_str());
+            tmp.x = (float)atof(word.c_str());
             f >> word;
-            tmp.y = atof(word.c_str());
+            tmp.y = (float)atof(word.c_str());
             f >> word;
-            tmp.z = atof(word.c_str());
+            tmp.z = (float)atof(word.c_str());
             Normals.push_back(tmp);
         }
         else if (word == "f")
@@ -110,7 +121,7 @@ a::ModelLoader::Mesh a::ModelLoader::ConvertOBJ(std::string path)
             //Upon reaching the first f line enter a cycle 
             while (f.good())
             {              
-                if (mesh.atr == ALL)
+                if (mesh->atr == ALL)
                 {
                     std::vector<Vector3int> tmpV;                    
                     while (f.good())
@@ -149,7 +160,7 @@ a::ModelLoader::Mesh a::ModelLoader::ConvertOBJ(std::string path)
                         for (size_t i = 0; i < tmpV.size(); i++) 
                             Vertecies.push_back(tmpV[i]); 
                 }
-                else if (mesh.atr == (POSITION | NORMAL))
+                else if (mesh->atr == (POSITION | NORMAL))
                 {
                     //TODO implement POSITION NORMAL Vertex format 
                     //Vertex format is Position//Normal
@@ -161,10 +172,10 @@ a::ModelLoader::Mesh a::ModelLoader::ConvertOBJ(std::string path)
     //Close file 
     f.close(); 
     //Fast? solution (I sure hope it works)
-    std::unordered_map<Vector3int, uint32_t> uniqueVertices;
+    std::unordered_map<Vector3int, size_t> uniqueVertices;
     std::vector<Vector3int > Vert;
     std::vector<uint32_t> Indecies;
-    for (size_t i = 0; i < Vertecies.size(); i++)
+    for (unsigned int i = 0; i < Vertecies.size(); i++)
     {
         if (uniqueVertices.count(Vertecies[i]) == 0)
         {
@@ -174,19 +185,19 @@ a::ModelLoader::Mesh a::ModelLoader::ConvertOBJ(std::string path)
         Indecies.push_back(uniqueVertices[Vertecies[i]]);
     }
 
-    mesh.Indecies = new uint32_t[Indecies.size()];
-    mesh.numIndecies = Indecies.size();
-    memcpy(mesh.Indecies, Indecies.data(), Indecies.size() * 4);
+    mesh->Indecies = new uint32_t[Indecies.size()];
+    mesh->numIndecies = Indecies.size();
+    memcpy(mesh->Indecies, Indecies.data(), Indecies.size() * 4);
 
 
    
-    mesh.Vertices = new Vertex[Vert.size()];
-    mesh.numVerticies = Vert.size();
+    mesh->Vertices = new Vertex[Vert.size()];
+    mesh->numVerticies = Vert.size();
     for (size_t i = 0; i < Vert.size(); i++)
-        if (mesh.atr == ALL)
-            mesh.Vertices[i] = Vertex(Positions[Vert[i].x], UVs[Vert[i].y], Normals[Vert[i].z]);
+        if (mesh->atr == ALL)
+            mesh->Vertices[i] = Vertex(Positions[Vert[i].x], UVs[Vert[i].y], Normals[Vert[i].z]);
         else
-            mesh.Vertices[i] = Vertex(Positions[Vert[i].x], Vector2::Zero(), Normals[Vert[i].z]);
+            mesh->Vertices[i] = Vertex(Positions[Vert[i].x], Vector2::Zero(), Normals[Vert[i].z]);
 
    
     return mesh;

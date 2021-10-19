@@ -1,5 +1,6 @@
 #include "Vulkan.h"
 
+
 Vulkan::Vulkan()
 {
 	m_instance = 0;
@@ -18,7 +19,9 @@ Vulkan::Vulkan()
 	m_resized = false;
 	rot = Vector3(0, 0, 0);
 	rot3 = Vector3(0, 0, 0);
+
 }
+
 
 void Vulkan::Init(GLFWwindow* wnd, Settings settings)
 {
@@ -26,7 +29,7 @@ void Vulkan::Init(GLFWwindow* wnd, Settings settings)
 	//TODO delete this
 	//Load model in a separete thread;
 	//Model by nicolekeane https://www.artstation.com/notthatkeane (CC BY-NC-SA 4.0) (slightly edited by me) 
-	std::thread mesh([this] { this->LoadMesh("Data/Girl.lmdl"); });
+	std::thread mesh([this] { this->LoadMesh("Data/Girl.obj"); });
 	
 	
 	//Applying settings
@@ -1512,11 +1515,11 @@ void Vulkan::DrawFrame()
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = signalSemaphores;
 
-	vkResetFences(m_device, 1, &m_inFlightFences[m_currentFrame]);
+	auto a = vkResetFences(m_device, 1, &m_inFlightFences[m_currentFrame]);
 	auto res1 = vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inFlightFences[m_currentFrame]);
 	if ( res1 != VK_SUCCESS)
 		throw std::runtime_error("Could not submit draw command buffer");
-
+	
 	VkPresentInfoKHR presentInfo{};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 	presentInfo.waitSemaphoreCount = 1;
@@ -1546,13 +1549,14 @@ void Vulkan::DrawFrame()
 
 void Vulkan::LoadMesh(std::string path)
 {
-	auto m = a::ModelLoader::LoadModel(path);
-	vertices.resize(m.numVerticies);
-	indecies.resize(m.numIndecies);
-	memcpy(vertices.data(), m.Vertices, m.numVerticies * sizeof(Vertex));
-	delete[] m.Vertices;
-	memcpy(indecies.data(), m.Indecies, m.numIndecies * sizeof(uint32_t));
-	delete[] m.Indecies;
+	auto m = a::ModelLoader::ConvertOBJ(path);
+	vertices.resize(m->numVerticies);
+	indecies.resize(m->numIndecies);
+	memcpy(vertices.data(), m->Vertices, m->numVerticies * sizeof(Vertex));
+	delete[] m->Vertices;
+	memcpy(indecies.data(), m->Indecies, m->numIndecies * sizeof(uint32_t));
+	delete[] m->Indecies;
+	delete m;
 	return;
 }
 
@@ -1562,7 +1566,7 @@ void Vulkan::CreateImage(std::string path)
 	unsigned char bpp;
 	auto img = ImageLoader::LoadBMP(path, h, w, bpp);
 	VkDeviceSize imgSize = w * h * 4;
-	m_ImgMipLevels = (std::floor(std::log2(std::max(w, h)))) +1;
+	m_ImgMipLevels = ((uint32_t)std::floor(std::log2(std::max(w, h)))) +1;
 
 	VkBuffer stagingBuffer;
 	VkDeviceMemory BuffMem;
