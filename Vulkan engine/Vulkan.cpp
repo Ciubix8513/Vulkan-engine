@@ -26,7 +26,7 @@ void Vulkan::Init(GLFWwindow* wnd, Settings settings)
 	//TODO delete this
 	//Load model in a separete thread;
 	//Model by nicolekeane https://www.artstation.com/notthatkeane (CC BY-NC-SA 4.0) (slightly edited by me) 
-	std::thread mesh([this] { this->LoadMesh("Data/Girl.obj"); });
+	std::thread mesh([this] { this->LoadMesh("Data/Girl.lmdl"); });
 	
 	
 	//Applying settings
@@ -638,8 +638,8 @@ void Vulkan::CreateRenderPass()
 void Vulkan::CreateGraphicsPipeline()
 {
 	//Create modules
-	VkShaderModule vShaderModule = CreateShaderModule("Data/shaders/vert.spv");
-	VkShaderModule fShaderModule = CreateShaderModule("Data/shaders/frag.spv");
+	VkShaderModule vShaderModule = CreateShaderModule("Data/shaders/compiled/vertTexture.spv");
+	VkShaderModule fShaderModule = CreateShaderModule("Data/shaders/compiled/fragTexture.spv");
 	//Vertex shader stage info
 	VkPipelineShaderStageCreateInfo vShaderStageCreationInfo{};
 	vShaderStageCreationInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -792,6 +792,7 @@ void Vulkan::CreateGraphicsPipeline()
 
 VkShaderModule Vulkan::CreateShaderModule(const char* path)
 {
+	
 	//open file
 	std::ifstream f(path, std::ios::ate | std::ios::binary);
 	if (!f.is_open())
@@ -864,11 +865,6 @@ void Vulkan::CreateCommandBuffers()
 
 	if (vkAllocateCommandBuffers(m_device, &allocInfo, m_commandBuffers.data()) != VK_SUCCESS)
 		throw std::runtime_error("Could not allocate command buffers");
-
-
-
-
-
 
 	for (size_t i = 0; i < m_commandBuffers.size(); i++)
 	{
@@ -1517,8 +1513,8 @@ void Vulkan::DrawFrame()
 	submitInfo.pSignalSemaphores = signalSemaphores;
 
 	vkResetFences(m_device, 1, &m_inFlightFences[m_currentFrame]);
-
-	if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inFlightFences[m_currentFrame]) != VK_SUCCESS)
+	auto res1 = vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inFlightFences[m_currentFrame]);
+	if ( res1 != VK_SUCCESS)
 		throw std::runtime_error("Could not submit draw command buffer");
 
 	VkPresentInfoKHR presentInfo{};
@@ -1550,10 +1546,10 @@ void Vulkan::DrawFrame()
 
 void Vulkan::LoadMesh(std::string path)
 {
-	auto m = ModelLoader::LoadOBJ(path);
-	vertices.resize(m.numVertecies);
+	auto m = a::ModelLoader::LoadModel(path);
+	vertices.resize(m.numVerticies);
 	indecies.resize(m.numIndecies);
-	memcpy(vertices.data(), m.Vertices, m.numVertecies * sizeof(Vertex));
+	memcpy(vertices.data(), m.Vertices, m.numVerticies * sizeof(Vertex));
 	delete[] m.Vertices;
 	memcpy(indecies.data(), m.Indecies, m.numIndecies * sizeof(uint32_t));
 	delete[] m.Indecies;

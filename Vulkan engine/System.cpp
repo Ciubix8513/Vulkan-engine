@@ -6,6 +6,7 @@ System::System()
 	m_vulkan = 0;
 	m_FPSupdateInterval = 1;
 	m_time = 0;
+	m_input = 0;
 }
 
 void System::Run()
@@ -15,6 +16,8 @@ void System::Run()
 	m_time->m_begin = std::chrono::system_clock::now();
 	int a = 1;
 	InitWindow(800, 600);
+	m_input = new Input();
+	
 	m_vulkan = new Vulkan();
 	//lol
 	Settings s{};
@@ -42,7 +45,7 @@ void System::InitWindow(size_t width, size_t height)
 	m_wnd = glfwCreateWindow(width, height, "Vulkan engine", 0, 0);
 	glfwSetWindowUserPointer(m_wnd, this);
 	glfwSetFramebufferSizeCallback(m_wnd, frameBufferResizeCallBack);
-	glfwSetKeyCallback(m_wnd, KeyCallback);
+	glfwSetKeyCallback(m_wnd, m_input->KeyCallback);
 	return;
 
 }
@@ -69,8 +72,11 @@ void System::MainLoop()
 	//Run until recive window close flag
 	while (!glfwWindowShouldClose(m_wnd))	
 	{
+		
 		//process window events
 		glfwPollEvents();
+		//Update input
+		m_input->UpdateKeys();
 		//Update time and dTime
 		m_time->Update();
 		//Draw frame
@@ -100,11 +106,6 @@ void System::CleanUp()
 
 }
 
-void System::KeyCallback(GLFWwindow* wnd, int key, int scancode, int action, int mods)
-{
-
-	return;
-}
 
 
 
@@ -115,3 +116,5 @@ void System::frameBufferResizeCallBack(GLFWwindow* wnd, int w, int h)
 	app->m_vulkan->m_resized = true;
 	return;
 }
+
+

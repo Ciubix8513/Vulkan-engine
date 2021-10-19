@@ -1,5 +1,6 @@
 #include "Vector4.h"
 
+
 EngineMath::Vector4::Vector4(float NewX, float NewY, float NewZ, float NewW)
 {	
 	x = NewX;

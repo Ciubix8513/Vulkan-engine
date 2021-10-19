@@ -1,3 +1,4 @@
+
 #include "Vector3.h"
 
 Vector3::Vector3(float NewX, float NewY, float NewZ)

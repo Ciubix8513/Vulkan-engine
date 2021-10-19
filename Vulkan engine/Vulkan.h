@@ -13,11 +13,15 @@
 #include <algorithm>
 #include <fstream>
 #include <array>
-#include "Math/EngineMath.h"
+#include "EngineMath.h"
 #include "Time.h"
 #include "ImageLoader.h"
 #include <string>
 #include <thread>
+#include "UI.h"
+//using namespace UI;
+
+class UI;
 
 //Load function
 static VkResult CreateDebugUtilsMessengerExt(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreatInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
@@ -75,6 +79,7 @@ struct Matricies
 	EngineMath::Matrix4x4 view;
 	EngineMath::Matrix4x4 proj;
 };
+
 
 class Vulkan
 {
@@ -147,7 +152,6 @@ private:
 
 
 #pragma region Members
-
 	Settings m_settings;
 	VkInstance m_instance;
 	VkDebugUtilsMessengerEXT m_messenger;
@@ -167,13 +171,22 @@ private:
 	VkPipeline m_graphicsPipeline;
 	std::vector<VkFramebuffer> m_swapChainFrameBuffers;
 	VkCommandPool m_commandPool;
-	VkCommandPool m_commandPool1;
+	VkCommandPool m_commandPool1;	
 	std::vector<VkCommandBuffer> m_commandBuffers;
+#pragma region Sync objects
 	std::vector < VkSemaphore> m_imageAvailableSemaphores;
 	std::vector < VkSemaphore> m_renderFinishedSemaphores;
 	std::vector<VkFence> m_inFlightFences;
 	std::vector<VkFence> m_imagesInFlight;
 	uint32_t m_currentFrame;
+#pragma endregion
+	//TODO remove this 
+#pragma region UI
+	VkCommandBuffer m_UiBuffer;
+	VkRenderPass m_UiSubpass;
+#pragma endregion
+
+
 	GLFWwindow* m_pWnd;
 	bool m_resized;
 	VkBuffer m_vertexBuffer;

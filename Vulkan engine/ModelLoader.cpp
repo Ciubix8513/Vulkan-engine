@@ -1,6 +1,55 @@
 #include "ModelLoader.h"
 
-ModelLoader::Mesh ModelLoader::LoadOBJ(std::string path)
+a::ModelLoader::Mesh a::ModelLoader::LoadModel(std::string path)
+{
+    std::ifstream file(path);
+    if (!file.is_open())
+        throw std::runtime_error("Could not open file");
+    
+    MDLheader header;
+    file.read((char*)&header, sizeof(header));
+    if ((std::string)header.signature != "_LUNAR_MODEL_FORMAT_")
+        throw std::runtime_error("Wrong file signature");
+    Mesh mesh{};
+    mesh.atr = header.Attributes;
+    mesh.numIndecies = header.NumIndecies;
+    mesh.numVerticies = header.NumVertices;
+    mesh.Vertices = new Vertex[mesh.numVerticies];
+    mesh.Indecies = new unsigned int[mesh.numIndecies];
+    file.read((char*)mesh.Vertices, sizeof(Vertex) * mesh.numVerticies);
+    file.read((char*)mesh.Indecies, 4U * mesh.numIndecies);
+    file.close();
+    return mesh;
+}
+
+void a::ModelLoader::SaveModel(Mesh mesh, std::string path)
+{
+    //File structure:
+    //Signature 21 bytes
+    //Mesh properties 9 bytes
+    //Vertecies data
+    //Indecies data
+
+    std::ofstream file(path);
+    if (!file.is_open())
+        throw std::runtime_error("Could not create file");
+    //Create header
+    MDLheader header{};
+    memcpy(header.signature,"_LUNAR_MODEL_FORMAT_",21 );
+    header.Attributes = mesh.atr;
+    header.NumVertices = mesh.numVerticies;
+    header.NumIndecies = mesh.numIndecies;
+    
+    file.write((char*)&header, sizeof(header));
+    file.write((char*)mesh.Vertices, sizeof(Vertex) * mesh.numVerticies);
+    file.write((char*)mesh.Indecies, 4U * mesh.numIndecies);
+    file.close();
+    return;
+
+    
+}
+
+a::ModelLoader::Mesh a::ModelLoader::ConvertOBJ(std::string path)
 {
     //TODO Mesure how long my code takes to run
    // auto BeginTime = std::chrono::system_clock::now();
@@ -111,76 +160,6 @@ ModelLoader::Mesh ModelLoader::LoadOBJ(std::string path)
     }
     //Close file 
     f.close(); 
-    /*
-    int TableSize =  std::max<size_t>({ Positions.size(),UVs.size(),Normals.size() });
-    auto HashTable = new  std::optional<Vector3int>[TableSize];
-    std::vector<unsigned int> indecies;
-    int a123 = 0;
-    int a1234 = 0;
-    for (size_t i = 0; i < Vertecies.size(); i++)
-    {
-        int a = Hash(Vertecies[i], TableSize);
-        if (!HashTable[a].has_value())
-        {
-            HashTable[a] = Vertecies[i];
-            a123++;
-        }else if (!(HashTable[a].value() == Vertecies[i]))
-        {
-            a1234++;
-            std::cout << ' ';
-        }
-        indecies.push_back(a);
-    }
-    //Fill index array, I sure hope this works
-    mesh.Indecies = new unsigned int[indecies.size()];
-    memcpy(mesh.Indecies, indecies.data(), indecies.size()*sizeof(unsigned int));
-    mesh.numIndecies = indecies.size();
-    //Fill vertex array
-    mesh.Vertices = new Vertex[TableSize];
-    for (size_t i = 0; i < TableSize; i++)
-        if(mesh.atr == ALL)
-        mesh.Vertices[i] = Vertex(Positions[HashTable[i].value().x], UVs[HashTable[i].value().y], Normals[HashTable[i].value().z]);
-        else
-            mesh.Vertices[i] = Vertex(Positions[HashTable[i].value().x],Vector2::Zero(), Normals[HashTable[i].value().z]);
-    mesh.numVertecies = TableSize;
-    delete[] HashTable;
-    */
-    /*
-    //INCREDIBLY slow solution
-    std::vector<Vector3int> Vectors;
-    std::vector<uint32_t> Indecies;
-    //TODO find other way to do this
-    //Make an array of unique values. Probably very inefficient, but I see no other way
-    for (size_t i = 0; i < Vertecies.size(); i++)
-    {
-        uint32_t index = 0;
-        if (FindValue<Vector3int>(Vectors.data(), Vectors.size(), Vertecies[i], index))
-            Indecies.push_back(index);
-        else
-        {
-            Vectors.push_back(Vertecies[i]);
-            Indecies.push_back(Vectors.size()  - 1 );
-        }
-    }
-    //By this point we have only unique vertices, creating mesh
-    //Fill indecies
-    //TODO put indecex array creation into a separate thread
-
-    mesh.Indecies = new uint32_t[Indecies.size()];
-    mesh.numIndecies = Indecies.size();
-    memcpy(mesh.Indecies, Indecies.data(), Indecies.size() * 4);
-    
-
-    //Create vertices
-    mesh.Vertices = new Vertex[Vectors.size()];
-    mesh.numVertecies = Vectors.size();
-    for (size_t i = 0; i < Vectors.size(); i++)
-        if (mesh.atr == ALL)
-            mesh.Vertices[i] = Vertex(Positions[Vectors[i].x], UVs[Vectors[i].y], Normals[Vectors[i].z]);
-        else
-            mesh.Vertices[i] = Vertex(Positions[Vectors[i].x], Vector2::Zero(), Normals[Vectors[i].z]);
-            
-    */
     //Fast? solution (I sure hope it works)
     std::unordered_map<Vector3int, uint32_t> uniqueVertices;
     std::vector<Vector3int > Vert;
@@ -202,7 +181,7 @@ ModelLoader::Mesh ModelLoader::LoadOBJ(std::string path)
 
    
     mesh.Vertices = new Vertex[Vert.size()];
-    mesh.numVertecies = Vert.size();
+    mesh.numVerticies = Vert.size();
     for (size_t i = 0; i < Vert.size(); i++)
         if (mesh.atr == ALL)
             mesh.Vertices[i] = Vertex(Positions[Vert[i].x], UVs[Vert[i].y], Normals[Vert[i].z]);
@@ -213,8 +192,9 @@ ModelLoader::Mesh ModelLoader::LoadOBJ(std::string path)
     return mesh;
 }
 
+
 //Should work
-Vector3int* ModelLoader::Triangulate(Vector3int* vertices, uint32_t size)
+Vector3int* a::ModelLoader::Triangulate(Vector3int* vertices, uint32_t size)
 {
     Vector3int* output = new Vector3int[(size - 2) * 3];
     size_t iter = 0;
@@ -231,16 +211,31 @@ Vector3int* ModelLoader::Triangulate(Vector3int* vertices, uint32_t size)
     return output;
 }
 
-ModelLoader::Vertex::Vertex(Vector3 pos, Vector2 uv, Vector3 normal)
+a::ModelLoader::Vertex::Vertex(Vector3 pos, Vector2 uv, Vector3 normal)
 {
     Position = pos;
     UV = uv;
     Normal = normal;
 }
 
-ModelLoader::Vertex::Vertex()
+a::ModelLoader::Vertex::Vertex()
 {
     Position = Vector3::Zero();
     UV = Vector2::Zero();
     Normal = Vector3::Zero();
 }
+
+a::ModelLoader::Mesh::Mesh()
+{
+    Vertices = 0;
+    Indecies = 0;
+    numVerticies = 0;
+    numIndecies = 0;
+    atr = 0;
+}
+
+//ModelLoader::Mesh::~Mesh()
+//{
+//    delete Vertices;
+//    delete Indecies;
+//}

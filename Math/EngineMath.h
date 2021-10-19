@@ -1,8 +1,8 @@
 #pragma once
 #ifndef _ENGINE_MATH_H_
 #define _ENGINE_MATH_H_
-#include"Vectors/Quarernion.h"
-#include "Matrices/Matrix4x4.h"
+#include"Quarernion.h"
+#include "Matrix4x4.h"
 
 namespace EngineMath
 {
